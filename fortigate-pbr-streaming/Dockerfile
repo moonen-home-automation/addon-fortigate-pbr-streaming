@@ -7,6 +7,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Copy root filesystem
 COPY rootfs /
+# hadolint ignore=DL3008
 RUN \
     apt-get update \
     && apt-get upgrade -y \
