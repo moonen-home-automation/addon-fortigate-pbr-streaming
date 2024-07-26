@@ -1,0 +1,21 @@
+---
+name: Deploy
+
+# yamllint disable-line rule:truthy
+on:
+  release:
+    types:
+      - released
+      - prereleased
+  workflow_run:
+    workflows: ['CI']
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  workflows:
+    # yamllint disable-line rule:line-length
+    uses: moonen-home-automation/workflows/.github/workflows/addon-deploy.yaml@main
+    secrets:
+      DISPATCH_TOKEN: ${{ secrets.DISPATCH_TOKEN }}

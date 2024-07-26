@@ -1,0 +1,13 @@
+---
+name: Release Drafter
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  workflows:
+    # yamllint disable-line rule:line-length
+    uses: moonen-home-automation/workflows/.github/workflows/release-drafter.yaml@main

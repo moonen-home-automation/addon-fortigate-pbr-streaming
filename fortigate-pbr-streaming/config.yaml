@@ -1,0 +1,25 @@
+---
+name: FortiGate BPR Streaming script
+version: dev
+slug: fortigate-pbr-streaming
+description: Script for dynamically updating Policy-based-routing policies on a FortiGate
+url: https://github.com/moonen-home-automation/addon-fortigate-pbr-streaming
+codenotary: rick@moonen.network
+startup: services
+arch:
+  - amd64
+init: false
+options:
+  fortigate_api_token: ''
+  fortigate_ip: '192.168.1.99'
+  fortigate_port: '443'
+  wan_interface: ''
+  vpn_interface: ''
+  policy_number: 1
+schema:
+  fortigate_api_token: password
+  fortigate_ip: str
+  fortigate_port: int
+  wan_interface: str
+  vpn_interface: str
+  policy_number: int

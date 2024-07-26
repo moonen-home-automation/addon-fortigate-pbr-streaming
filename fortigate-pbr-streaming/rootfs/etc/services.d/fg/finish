@@ -1,0 +1,11 @@
+#!/command/with-contenv bashio
+# ==============================================================================
+# Home Assistant Add-on: FortiGate PBR Streaming
+# Runs the Fortigate Policy-based routing streaming script
+# ==============================================================================
+if [[ "${1}" -ne 0 ]] && [[ "${1}" -ne 256 ]]; then
+  bashio::log.warning "FortiGate PBR Streaming script crashed, halting add-on"
+  /run/s6/basedir/bin/halt
+fi
+
+bashio::log.info "FortiGate PBR Streaming script stopped, restarting..."
