@@ -12,7 +12,7 @@ init: false
 options:
   fortigate_api_token: ""
   fortigate_ip: "192.168.1.99"
-  fortigate_port: "443"
+  fortigate_port: "8443"
   vpn_interface: ""
   policy_number: 1
 schema:
