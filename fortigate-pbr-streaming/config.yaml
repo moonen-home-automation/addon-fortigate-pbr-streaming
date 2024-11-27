@@ -21,3 +21,4 @@ schema:
   fortigate_port: int
   vpn_interface: str
   policy_number: int
+
