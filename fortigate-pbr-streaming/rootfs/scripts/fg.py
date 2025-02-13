@@ -26,7 +26,7 @@ apisession = requests.session()
 default_api_prefix = f'https://{fortigate_ip}:{fortigate_port}/api/v2'
 
 ## VPN API prefix
-vpn_api_prefix = f'{default_api_prefix}/monitor/vpn/ipsec'
+vpn_api_prefix = f'{default_api_prefix}/monitor/vpn/ipsec/'
 
 ## API header
 api_header = {
@@ -41,24 +41,30 @@ def interface_status_function(interface_name, api_url):
         response.raise_for_status()
         data = response.json()
         
-        ## If type is VPN
+        ## Check if VPN is up
         for result in data.get('results', []):
-            for proxy in result.get('proxyid', []):
-                if proxy['p2name'] == interface_name:
-                    return proxy['status'] == 'up'
+            if result.get('name') == interface_name and result.get('status') == 'up':
+                return True
         
     except requests.RequestException as e:
-        print(f"An error occurred: {e}")
+        print(f"[ERROR] Failed to get VPN status: {e}")
+    
     return False
 
 ## Function to change PBR (Policy-Based Routing)
 def change_pbr_status(status):
     api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}?scope=vdom&vdom={fortigate_vdom}"
     api_body = {
-        "seq-num": 1,
+        "seq-num": int(policy_number),  # Ensure correct policy number
         "status": status
     }
-    apisession.put(api_url, json=api_body, headers=api_header, verify=False)
+
+    try:
+        response = apisession.put(api_url, json=api_body, headers=api_header, verify=False)
+        response.raise_for_status()
+        print(f"[INFO] PBR Policy {policy_number} set to {status.upper()}")
+    except requests.RequestException as e:
+        print(f"[ERROR] Failed to update PBR policy: {e}")
 
 ## Track the previous VPN status
 previous_status = None
@@ -69,12 +75,12 @@ while True:
 
     if vpn_status != previous_status:  # Only log when there's a change
         if vpn_status:
-            print("VPN is UP - Enabling PBR")
+            print("[INFO] VPN is UP - Enabling PBR")
             change_pbr_status("enable")
         else:
-            print("VPN is DOWN - Disabling PBR")
+            print("[INFO] VPN is DOWN - Disabling PBR")
             change_pbr_status("disable")
         
         previous_status = vpn_status  # Update previous status
 
-    time.sleep(2)
+    time.sleep(5)  # Reduce API calls
