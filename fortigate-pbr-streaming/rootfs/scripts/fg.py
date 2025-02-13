@@ -3,8 +3,9 @@ import requests
 import time
 import urllib3
 import os
+from datetime import datetime
 
-# Suppress only the single InsecureRequestWarning from urllib3 needed
+# Suppress InsecureRequestWarning
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 ## Device variables
@@ -26,61 +27,70 @@ apisession = requests.session()
 default_api_prefix = f'https://{fortigate_ip}:{fortigate_port}/api/v2'
 
 ## VPN API prefix
-vpn_api_prefix = f'{default_api_prefix}/monitor/vpn/ipsec/'
+vpn_api_prefix = f'{default_api_prefix}/monitor/vpn/ipsec'
 
 ## API header
 api_header = {
-    'Accept': 'application/json',  # Specify API format
-    'Authorization': f'Bearer {fortigate_api_token}'  # Specify Bearer token
+    'Accept': 'application/json',
+    'Authorization': f'Bearer {fortigate_api_token}'
 }
 
-## API Interface check Function
+## Store the last known VPN status
+last_vpn_status = None
+
+## Logging function with timestamp
+def log_message(message):
+    timestamp = datetime.now().strftime('%D-%M-%Y %H:%M:%S')
+    print(f"[{timestamp}] {message}")
+
+## Function to check VPN status (Explicit UP or DOWN check)
 def interface_status_function(interface_name, api_url):
     try:
         response = apisession.get(api_url, headers=api_header, verify=False)
         response.raise_for_status()
         data = response.json()
-        
-        ## Check if VPN is up
+
         for result in data.get('results', []):
-            if result.get('name') == interface_name and result.get('status') == 'up':
-                return True
+            for proxy in result.get('proxyid', []):
+                if proxy['p2name'] == interface_name:
+                    status = proxy.get('status', 'unknown')  # Get status, default to 'unknown'
+                    if status == 'up':
+                        return True
+                    elif status == 'down':
+                        return False
+
+        log_message(f"VPN interface {interface_name} not found in API response or missing status field")
         
     except requests.RequestException as e:
-        print(f"[ERROR] Failed to get VPN status: {e}")
+        log_message(f"Error fetching VPN status: {e}")
     
-    return False
+    return False  # Default to 'down' if we can't determine status
 
 ## Function to change PBR (Policy-Based Routing)
 def change_pbr_status(status):
     api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}?scope=vdom&vdom={fortigate_vdom}"
-    api_body = {
-        "seq-num": int(policy_number),  # Ensure correct policy number
-        "status": status
-    }
-
+    api_body = {"seq-num": 1, "status": status}
+    
     try:
         response = apisession.put(api_url, json=api_body, headers=api_header, verify=False)
         response.raise_for_status()
-        print(f"[INFO] PBR Policy {policy_number} set to {status.upper()}")
+        log_message(f"Policy {policy_number} set to {status}")
     except requests.RequestException as e:
-        print(f"[ERROR] Failed to update PBR policy: {e}")
+        log_message(f"Error updating PBR policy: {e}")
 
-## Track the previous VPN status
-previous_status = None
-
-## Check if VPN is up
+## Check VPN status in a loop
 while True:
     vpn_status = interface_status_function(vpn_interface, vpn_api_prefix)
 
-    if vpn_status != previous_status:  # Only log when there's a change
+    if last_vpn_status is None:
+        log_message(f"Initial VPN status: {'UP' if vpn_status else 'DOWN'}")
+    elif last_vpn_status != vpn_status:
         if vpn_status:
-            print("[INFO] VPN is UP - Enabling PBR")
+            log_message("VPN transitioned to UP - Enabling PBR")
             change_pbr_status("enable")
         else:
-            print("[INFO] VPN is DOWN - Disabling PBR")
+            log_message("VPN transitioned to DOWN - Disabling PBR")
             change_pbr_status("disable")
-        
-        previous_status = vpn_status  # Update previous status
-
-    time.sleep(5)  # Reduce API calls
+    
+    last_vpn_status = vpn_status
+    time.sleep(5)  # Adjust polling interval as needed
