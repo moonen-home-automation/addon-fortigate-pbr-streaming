@@ -47,8 +47,6 @@ def interface_status_function(interface_name, api_url):
                 if proxy['p2name'] == interface_name:
                     return proxy['status'] == 'up'
         
-                
-    ## Throw error
     except requests.RequestException as e:
         print(f"An error occurred: {e}")
     return False
@@ -62,14 +60,21 @@ def change_pbr_status(status):
     }
     apisession.put(api_url, json=api_body, headers=api_header, verify=False)
 
+## Track the previous VPN status
+previous_status = None
+
 ## Check if VPN is up
 while True:
     vpn_status = interface_status_function(vpn_interface, vpn_api_prefix)
-    
-    if vpn_status: ## VPN up
-        change_pbr_status("enable") ## Set PBR status to enable
 
-    else: ## VPN down
-        change_pbr_status("disable") ## Set PBR status to disable
-    
+    if vpn_status != previous_status:  # Only log when there's a change
+        if vpn_status:
+            print("VPN is UP - Enabling PBR")
+            change_pbr_status("enable")
+        else:
+            print("VPN is DOWN - Disabling PBR")
+            change_pbr_status("disable")
+        
+        previous_status = vpn_status  # Update previous status
+
     time.sleep(2)
