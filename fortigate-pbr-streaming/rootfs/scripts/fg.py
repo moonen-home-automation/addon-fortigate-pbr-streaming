@@ -11,6 +11,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 fortigate_api_token = os.getenv("FORTIGATE_API_TOKEN")
 fortigate_ip = os.getenv("FORTIGATE_IP")
 fortigate_port = os.getenv("FORTIGATE_PORT")
+fortigate_vdom = os.getenv("FORTIGATE_VDOM")
 
 ## Interface variables
 vpn_interface = os.getenv("VPN_INTERFACE")
@@ -54,7 +55,7 @@ def interface_status_function(interface_name, api_url):
 
 ## Function to change PBR (Policy-Based Routing)
 def change_pbr_status(status):
-    api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}"
+    api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}&vdom={vdom}"
     api_body = {
         "seq-num": 1,
         "status": status

@@ -6,18 +6,21 @@
 declare fortigate_api_token
 declare fortigate_ip
 declare fortigate_port
+declare fortigate_vdom
 declare vpn_interface
 declare policy_number
 
 fortigate_api_token=$(bashio::config 'fortigate_api_token')
 fortigate_ip=$(bashio::config 'fortigate_ip')
 fortigate_port=$(bashio::config 'fortigate_port')
+fortigate_vdom=$(bashio::config 'fortigate_vdom')
 vpn_interface=$(bashio::config 'vpn_interface')
 policy_number=$(bashio::config 'policy_number')
 
 export "FORTIGATE_API_TOKEN=${fortigate_api_token}"
 export "FORTIGATE_IP=${fortigate_ip}"
 export "FORTIGATE_PORT=${fortigate_port}"
+export "FORTIGATE_VDOM=${fortigate_vdom}"
 export "VPN_INTERFACE=${vpn_interface}"
 export "POLICY_NUMBER=${policy_number}"
 

@@ -13,11 +13,13 @@ options:
   fortigate_api_token: ""
   fortigate_ip: "192.168.1.99"
   fortigate_port: "443"
+  fortigate_vdom: "root"
   vpn_interface: ""
   policy_number: 1
 schema:
   fortigate_api_token: password
   fortigate_ip: str
   fortigate_port: int
+  fortigate_vdom: str
   vpn_interface: str
   policy_number: int
