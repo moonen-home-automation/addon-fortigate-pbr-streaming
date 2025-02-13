@@ -55,7 +55,7 @@ def interface_status_function(interface_name, api_url):
 
 ## Function to change PBR (Policy-Based Routing)
 def change_pbr_status(status):
-    api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}&vdom={vdom}"
+    api_url = f"{default_api_prefix}/cmdb/router/policy/{policy_number}&vdom={fortigate_vdom}"
     api_body = {
         "seq-num": 1,
         "status": status
